@@ -1,0 +1,10 @@
+.*
+*.local.*
+*_ignore_*
+!.gitignore
+!.gitmodules
+*~
+*.pyc
+
+result
+newint

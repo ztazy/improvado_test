@@ -2,6 +2,7 @@ import xml.etree.ElementTree as etree
 import json
 import csv
 from itertools import chain
+from collections import defaultdict
 
 
 FILEPATH = [
@@ -70,29 +71,56 @@ def cutter(list_input, min_index_input):
         dict(
             (key, value)
             for key, value in dict_item.items()
-            if int(key[1:]) <= min_index
+            if int(key[1:]) <= min_index_input
         )
         for dict_item in list_input
     ]
 
 
-csv_data1, min_value_csv1 = csv_reader(FILEPATH[0])
-csv_data2, min_value_csv2 = csv_reader(FILEPATH[1])
-json_data, min_value_json = json_reader(FILEPATH[2])
-xml_data, min_value_xml = xml_reader(FILEPATH[3])
-min_index = min(min_value_csv1, min_value_csv2, min_value_json, min_value_xml)
-csv_data1, csv_data2, json_data, xml_data = map(lambda item: cutter(item, min_index), [csv_data1, csv_data2, json_data, xml_data])
+def get_all_data():
+    csv_data1, min_value_csv1 = csv_reader(FILEPATH[0])
+    csv_data2, min_value_csv2 = csv_reader(FILEPATH[1])
+    json_data, min_value_json = json_reader(FILEPATH[2])
+    xml_data, min_value_xml = xml_reader(FILEPATH[3])
+    min_index = min(min_value_csv1, min_value_csv2, min_value_json, min_value_xml)
+    csv_data1, csv_data2, json_data, xml_data = map(lambda item: cutter(item, min_index), [csv_data1, csv_data2, json_data, xml_data])
 
-all_data = list(chain(csv_data1, csv_data2, json_data, xml_data))
+    all_data = list(chain(csv_data1, csv_data2, json_data, xml_data))
 
-all_data = sorted(all_data, key=lambda item: item['D1'])
+    return sorted(all_data, key=lambda item: item['D1']), min_index
 
-header = all_data[0].keys()
-result = "\t".join(header) + '\n'
 
-for data in all_data:
-    result += "\t".join(map(str, data.values())) + '\n'
+def basic(data):
+    header = data[0].keys()
+    result = "\t".join(header) + '\n'
 
-# print(json_data[0].values())
-print(result)
+    for item in data:
+        result += "\t".join(map(str, item.values())) + '\n'
 
+    return result
+
+
+def advanced(data, min_index):
+    header = data[0].keys()
+    output = "\t".join(header) + '\n'
+    sort_data = defaultdict(list)
+    for item in data:
+        sort_data["".join(list(item.values())[:min_index])].append(list(map(int, list(item.values())[min_index:])))
+    
+    result = dict()
+    for key, values in sorted(sort_data.items(), key=lambda x: x[0]):
+        result_values = [0] * len(values[0])
+        for value in values:
+            for index, element in enumerate(value): 
+                result_values[index] += element
+        result[key] = result_values
+    for key, item in result.items():
+        output += "\t".join(key) + "\t" + "\t".join(map(str, item)) + '\n'
+    
+    return output
+
+
+if __name__ == '__main__':
+    data, min_index = get_all_data()
+    # print(basic(data))
+    print(advanced(data, min_index))

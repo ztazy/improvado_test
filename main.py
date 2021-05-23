@@ -122,5 +122,7 @@ def advanced(data, min_index):
 
 if __name__ == '__main__':
     data, min_index = get_all_data()
-    # print(basic(data))
-    print(advanced(data, min_index))
+    with open('data/basic.tsv', 'w') as f_basic:
+        f_basic.write(basic(data))
+    with open('data/advanced.tsv', 'w') as f_advanced:
+        f_advanced.write(advanced(data, min_index))
